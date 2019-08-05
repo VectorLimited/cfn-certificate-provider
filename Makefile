@@ -1,8 +1,8 @@
 include Makefile.mk
 
 NAME=cfn-certificate-provider
-S3_BUCKET_PREFIX=binxio-public
-AWS_REGION=eu-central-1
+S3_BUCKET_PREFIX=vector-private
+AWS_REGION=us-east-1
 ALL_REGIONS=$(shell printf "import boto3\nprint('\\\n'.join(map(lambda r: r['RegionName'], boto3.client('ec2').describe_regions()['Regions'])))\n" | python | grep -v '^$(AWS_REGION)$$')
 
 help:
@@ -22,12 +22,6 @@ deploy: target/$(NAME)-$(VERSION).zip
 	aws s3 --region $(AWS_REGION) cp \
 		s3://$(S3_BUCKET_PREFIX)-$(AWS_REGION)/lambdas/$(NAME)-$(VERSION).zip \
 		s3://$(S3_BUCKET_PREFIX)-$(AWS_REGION)/lambdas/$(NAME)-latest.zip
-	aws s3api --region $(AWS_REGION) \
-		put-object-acl --bucket $(S3_BUCKET_PREFIX)-$(AWS_REGION) \
-		--acl public-read --key lambdas/$(NAME)-$(VERSION).zip
-	aws s3api --region $(AWS_REGION) \
-		put-object-acl --bucket $(S3_BUCKET_PREFIX)-$(AWS_REGION) \
-		--acl public-read --key lambdas/$(NAME)-latest.zip
 
 deploy-all-regions: deploy
 	@for REGION in $(ALL_REGIONS); do \
@@ -47,7 +41,7 @@ deploy-all-regions: deploy
 			put-object-acl --bucket $(S3_BUCKET_PREFIX)-$$REGION \
 			--acl public-read --key lambdas/$(NAME)-latest.zip; \
 	done
-		
+
 
 undeploy:
 	@for REGION in $(ALL_REGIONS); do \
@@ -75,7 +69,7 @@ venv: requirements.txt
 	. ./venv/bin/activate && \
 	pip3 --quiet install --upgrade pip && \
 	pip3 --quiet install -r requirements.txt
-	
+
 clean:
 	rm -rf venv target src/*.pyc tests/*.pyc
 
@@ -115,4 +109,3 @@ demo:
 delete-demo:
 	aws --region $(AWS_REGION) cloudformation delete-stack --stack-name $(NAME)-demo
 	aws --region $(AWS_REGION) cloudformation wait stack-delete-complete  --stack-name $(NAME)-demo
-
