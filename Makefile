@@ -7,7 +7,7 @@ ALL_REGIONS=$(shell printf "import boto3\nprint('\\\n'.join(map(lambda r: r['Reg
 
 help:
 	@echo 'make                 - builds a zip file to target/.'
-	@echo 'make release         - builds a zip file and deploys it to s3.'
+	@echo 'make deploy         - builds a zip file and deploys it to s3.'
 	@echo 'make clean           - the workspace.'
 	@echo 'make test            - execute the tests, requires a working AWS connection.'
 	@echo 'make deploy-provider - deploys the provider.'
